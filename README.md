@@ -30,7 +30,7 @@ npm run dev
 Build the application for production:
 
 ```bash
-npm run build
+npx nuxi generate
 ```
 
 Locally preview production build:
