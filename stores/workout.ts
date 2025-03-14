@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import type { Workout, WorkoutPreferences } from '../types';
-import { db } from '../config/firebase';
+import type { Workout, WorkoutPreferences } from '~/types';
+import { db } from '~/config/firebase';
 import { collection, addDoc } from 'firebase/firestore';
-import { generateWorkoutPlan } from '../config/openai';
+import { generateWorkoutPlan } from '~/config/openai';
 
 export const useWorkoutStore = defineStore('workout', () => {
   const workouts = ref<Workout[]>([]);
