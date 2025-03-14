@@ -1,3 +1,5 @@
+import localforage from 'localforage';
+
 interface IndexedDBConfig {
     dbName: string;
     objectStoreName: string;
@@ -77,5 +79,13 @@ interface IndexedDBConfig {
         console.error('Error getting data from IndexedDB:', error);
         return [];
       }
+    }    
+
+    async setLastUpdateTime(timestamp: number) {
+      await localforage.setItem('fruits_last_update', timestamp);
+    }
+    
+    async getLastUpdateTime() {
+      return await localforage.getItem('fruits_last_update');
     }
   }

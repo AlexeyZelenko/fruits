@@ -12,16 +12,15 @@
   "dependencies": {
     "@pinia/nuxt": "^0.5.5",
     "@vueuse/core": "^10.9.0",
-    "@vueuse/nuxt": "^10.9.0",
-    "h3": "^1.15.1",
-    "h3-proxy": "^1.13.0",
-    "http-proxy-middleware": "^3.0.3",
+    "@vueuse/nuxt": "^10.9.0",    
+    "localforage": "^1.10.0",
     "nuxt": "^3.13.0",
     "pinia": "^2.1.7",
     "sass": "^1.72.0"
   },
   "devDependencies": {
     "@nuxt/devtools": "^1.0.8",
+    "@types/localforage": "^0.0.33",
     "@types/node": "^20.11.28",
     "typescript": "^5.4.2"
   }

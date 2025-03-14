@@ -18,6 +18,14 @@ body {
   background-color: var(--background-color);
   color: var(--text-color);
   line-height: 1.6;
+  
+  /* Hide scrollbar for the entire page */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .container {
@@ -66,8 +74,8 @@ body {
 
 .filters {
   background: var(--card-background);
-  padding: 1rem;
-  margin-bottom: 1.5rem;
+  padding: .5rem;
+  margin-bottom: .1rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }

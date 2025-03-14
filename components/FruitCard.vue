@@ -11,11 +11,9 @@
     <div class="nutrition">
       <h4>Nutrition Facts:</h4>
       <ul>
-        <li>Calories: {{ fruit.nutritions.calories }}</li>
-        <li>Fat: {{ fruit.nutritions.fat }}g</li>
-        <li>Sugar: {{ fruit.nutritions.sugar }}g</li>
-        <li>Carbohydrates: {{ fruit.nutritions.carbohydrates }}g</li>
-        <li>Protein: {{ fruit.nutritions.protein }}g</li>
+        <li v-for="(value, key) in fruit.nutritions" :key="key">
+          {{ formatLabel(key) }}: {{ value }}{{ key !== 'calories' ? 'g' : '' }}
+        </li>
       </ul>
     </div>
 
@@ -43,17 +41,21 @@ const isFavorite = computed(() => store.isFavorite(props.fruit.id));
 const toggleFavorite = () => {
   store.toggleFavorite(props.fruit);
 };
+
+const formatLabel = (key: string) => {
+  return key.charAt(0).toUpperCase() + key.slice(1);
+};
 </script>
 
 <style lang="scss" scoped>
 .fruit-card {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: .4rem;
 
   h3 {
     color: var(--text-color);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.2rem;
   }
 
   .family-link {
@@ -69,10 +71,10 @@ const toggleFavorite = () => {
   .nutrition {
     ul {
       list-style: none;
-      margin-top: 0.5rem;
+      margin-top: 0.2rem;
 
       li {
-        margin: 0.25rem 0;
+        margin: 0.05rem 0;
       }
     }
   }

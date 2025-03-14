@@ -6,13 +6,22 @@
       No favorite fruits yet. Add some from the home page!
     </div>
     
-    <div v-else class="grid">
-      <FruitCard 
-        v-for="fruit in favorites"
-        :key="fruit.id"
-        :fruit="fruit"
-      />
-    </div>
+    <InfiniteScroll
+      v-else
+      :items="favorites"
+      :page-size="12"
+      class="favorites-container"
+    >
+      <template #default="{ items }">
+        <div class="grid">
+          <FruitCard 
+            v-for="fruit in items"
+            :key="fruit.id"
+            :fruit="fruit"
+          />
+        </div>
+      </template>
+    </InfiniteScroll>
   </div>
 </template>
 
@@ -26,6 +35,10 @@ const favorites = toRef(store, 'favorites');
 <style lang="scss" scoped>
 h1 {
   margin-bottom: 2rem;
+}
+
+.favorites-container {
+  height: calc(100vh - 200px);
 }
 
 .empty-state {

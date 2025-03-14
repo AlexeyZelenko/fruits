@@ -1,8 +1,8 @@
 <template>
   <div>
-    <FilterPanel />
+    <FilterPanel v-model="store.filters" />
     
-    <div v-if="loading" class="loading">
+    <div v-if="loading && !store.fruits.length" class="loading">
       Loading fruits...
     </div>
     
@@ -10,13 +10,24 @@
       {{ error }}
     </div>
     
-    <div v-else-if="filteredFruits.length > 0" class="grid">
-      <FruitCard 
-        v-for="fruit in filteredFruits"
-        :key="fruit.id"
-        :fruit="fruit"        
-      />
-    </div>
+    <InfiniteScroll
+      v-else-if="filteredFruits.length > 0"
+      :items="filteredFruits"
+      :loading="loading"
+      :page-size="12"
+      class="fruits-container"
+      @load-more="loadMore"
+    >
+      <template #default="{ items }">
+        <div class="grid">
+          <FruitCard 
+            v-for="fruit in items"
+            :key="fruit.id"
+            :fruit="fruit"
+          />
+        </div>
+      </template>
+    </InfiniteScroll>
     
     <div v-else class="no-data">
       No fruits found.
@@ -27,19 +38,26 @@
 <script setup lang="ts">
 import { useFruitsStore } from '~/stores/fruits';
 import { storeToRefs } from 'pinia';
-import { onMounted } from 'vue';
 
 const store = useFruitsStore();
 const { loading, error, filteredFruits } = storeToRefs(store);
 
-// Fetch fruits when the component is mounted
 onMounted(() => {
-  console.log('Fetching fruits...');
   store.fetchFruits();
 });
+
+const loadMore = () => {
+  // This function will be called when we need to load more items
+  // In this case, we're using client-side pagination, so we don't need
+  // to do anything here, but you could add API pagination if needed
+};
 </script>
 
 <style lang="scss" scoped>
+.fruits-container {
+  height: calc(100vh - 200px);
+}
+
 .loading, .error, .no-data {
   text-align: center;
   padding: 2rem;

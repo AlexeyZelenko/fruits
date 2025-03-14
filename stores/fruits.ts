@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import type { Fruit, FruitFilters } from '~/types/fruit';
 import { IndexedDBService } from '~/utils/indexedDBService';
+import { fruitsApi } from '~/api/fruits';
 
 const fruitDBService = new IndexedDBService<Fruit>({
   dbName: 'fruitDatabase',
@@ -9,8 +10,8 @@ const fruitDBService = new IndexedDBService<Fruit>({
 });
 
 export const useFruitsStore = defineStore('fruits', () => {
-  const fruits = ref<Fruit[]>([]);
-  const favorites = ref<Fruit[]>([]);
+  const fruits = shallowRef<Fruit[]>([]);
+  const favorites = shallowRef<Fruit[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
 
@@ -24,7 +25,6 @@ export const useFruitsStore = defineStore('fruits', () => {
 
   const isClient = typeof window !== 'undefined';
 
-  // Load favorites from localStorage on store initialization
   const initializeFavorites = () => {
     if (isClient) {
       const stored = localStorage.getItem('favorites');
@@ -34,30 +34,64 @@ export const useFruitsStore = defineStore('fruits', () => {
     }
   };
 
-  // Save favorites to localStorage whenever they change
   watch(favorites, (newFavorites) => {
     if (isClient) {
       localStorage.setItem('favorites', JSON.stringify(newFavorites));
     }
   }, { deep: true });
 
+  const shouldFetchFreshData = async (): Promise<boolean> => {
+    if (!isClient) return true;
+
+    const lastUpdate = await fruitDBService.getLastUpdateTime();
+    if (!lastUpdate) return true;
+
+    const currentTime = new Date().getTime();
+    const ONE_HOUR = 1 * 60 * 60 * 1000;
+    return currentTime - Number(lastUpdate) >= ONE_HOUR;
+  };
+
   const fetchFruits = async () => {
     loading.value = true;
     error.value = null;
+    
     try {
-      const config = useRuntimeConfig();
-      const response = await fetch('https://fruityvice.com/api/fruit/all');
-      const data = await response.json();
-      fruits.value = data;
-
+      let localData: Fruit[] = [];
+      
       if (isClient) {
-        await fruitDBService.storeData(data);
+        localData = await fruitDBService.getData();
+        if (localData.length > 0) {
+          fruits.value = localData;
+        }
+      }
+
+      const needsFetch = await shouldFetchFreshData();
+      
+      if (needsFetch) {
+        const data = await fruitsApi.getAllFruits();
+        const hasChanges = !localData.length || 
+          JSON.stringify(data) !== JSON.stringify(localData);
+        
+        if (hasChanges) {
+          fruits.value = data;
+          
+          if (isClient) {
+            await fruitDBService.storeData(data);
+            await fruitDBService.setLastUpdateTime(new Date().getTime());
+          }
+        }
       }
     } catch (e) {
       if (isClient) {
-        fruits.value = await fruitDBService.getData();
+        const localData = await fruitDBService.getData();
+        if (localData.length > 0) {
+          fruits.value = localData;
+        } else {
+          error.value = 'Failed to fetch fruits and no local data available';
+        }
+      } else {
+        error.value = 'Failed to fetch fruits';
       }
-      error.value = 'Failed to fetch fruits';
       console.error(e);
     } finally {
       loading.value = false;
@@ -68,9 +102,7 @@ export const useFruitsStore = defineStore('fruits', () => {
     loading.value = true;
     error.value = null;
     try {
-      const response = await fetch(`https://fruityvice.com/api/fruit/family/${family}`);
-      const data = await response.json();
-      return data;
+      return await fruitsApi.getFruitsByFamily(family);
     } catch (e) {
       error.value = 'Failed to fetch fruits by family';
       console.error(e);
@@ -83,9 +115,9 @@ export const useFruitsStore = defineStore('fruits', () => {
   const toggleFavorite = (fruit: Fruit) => {
     const index = favorites.value.findIndex(f => f.id === fruit.id);
     if (index === -1) {
-      favorites.value.push(fruit);
+      favorites.value = [...favorites.value, fruit];
     } else {
-      favorites.value.splice(index, 1);
+      favorites.value = favorites.value.filter(f => f.id !== fruit.id);
     }
   };
 
@@ -95,14 +127,10 @@ export const useFruitsStore = defineStore('fruits', () => {
 
   const filteredFruits = computed(() => {
     return fruits.value.filter(fruit => {
-      // Check if fruit and nutritions exist before accessing properties
-      if (!fruit?.nutritions) {
-        return false;
-      }
+      if (!fruit?.nutritions) return false;
 
       const { nutritions } = fruit;
       
-      // Ensure all nutritional values exist and are numbers
       const isValidNutrition = (
         typeof nutritions.calories === 'number' &&
         typeof nutritions.fat === 'number' &&
@@ -111,9 +139,7 @@ export const useFruitsStore = defineStore('fruits', () => {
         typeof nutritions.protein === 'number'
       );
 
-      if (!isValidNutrition) {
-        return false;
-      }
+      if (!isValidNutrition) return false;
 
       return (
         nutritions.calories >= filters.value.calories.min &&
@@ -130,7 +156,6 @@ export const useFruitsStore = defineStore('fruits', () => {
     });
   });
 
-  // Initialize favorites when the store is created
   if (isClient) {
     initializeFavorites();
   }
