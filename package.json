@@ -8,14 +8,16 @@
     "generate": "npx nuxi generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "deploy": "firebase deploy --only hosting"
+    "deploy": "firebase deploy --only hosting"    
   },
   "dependencies": {
     "@pinia/nuxt": "^0.5.5",
     "@vueuse/core": "^10.9.0",
-    "@vueuse/nuxt": "^10.9.0",    
+    "@vueuse/nuxt": "^10.9.0",
+    "firebase": "^11.4.0",
     "localforage": "^1.10.0",
     "nuxt": "^3.13.0",
+    "openai": "^4.87.3",
     "pinia": "^2.1.7",
     "sass": "^1.72.0"
   },
