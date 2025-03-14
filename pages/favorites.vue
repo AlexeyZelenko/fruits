@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="page-container">
     <h1>My Favorite Fruits</h1>
     
     <div v-if="favorites.length === 0" class="empty-state">
@@ -33,12 +33,19 @@ const favorites = toRef(store, 'favorites');
 </script>
 
 <style lang="scss" scoped>
+.page-container {
+  min-height: calc(100vh - 60px); // Adjust based on your header height
+  display: flex;
+  flex-direction: column;
+}
+
 h1 {
   margin-bottom: 2rem;
 }
 
 .favorites-container {
-  height: calc(100vh - 200px);
+  flex: 1;
+  overflow-y: auto;
 }
 
 .empty-state {
@@ -47,5 +54,10 @@ h1 {
   background: var(--card-background);
   border-radius: 8px;
   margin: 2rem 0;
+}
+
+.grid {
+  padding: 0;
+  margin-bottom: 0;
 }
 </style>

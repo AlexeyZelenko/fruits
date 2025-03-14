@@ -1,9 +1,20 @@
 <template>
   <div class="filter-container">
-    <button v-if="isMobile" class="filter-toggle-button" @click="toggleFilters">
-      {{ filtersOpen ? 'Hide Filters' : 'Show Filters' }}
-    </button>
-    <div class="filters" :class="{ 'filters-open': filtersOpen }">
+    <div class="filters" :class="{ 'filters-open': isOpen }">
+      <div class="filters-header">
+        <h3>Filters</h3>
+        <div class="filters-actions">
+          <button class="reset-button" @click="resetFilters">
+            Reset
+          </button>
+          <button class="close-button" @click="closeFilters">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
       <div class="filters-grid">
         <div v-for="(filter, key) in modelValue" :key="key" class="filter-group">
           <h5>{{ formatLabel(key) }}</h5>
@@ -32,12 +43,13 @@
         </div>
       </div>
     </div>
+    <div v-if="isOpen" class="filters-overlay" @click="closeFilters"></div>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { FruitFilters } from '~/types/fruit';
-import { ref, computed } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 
 const props = defineProps<{
   modelValue: FruitFilters;
@@ -47,21 +59,44 @@ const emit = defineEmits<{
   'update:modelValue': [value: FruitFilters];
 }>();
 
-const filtersOpen = ref(false);
+const isOpen = ref(false);
+const emitter = useEmitter();
 
-const toggleFilters = () => {
-  filtersOpen.value = !filtersOpen.value;
+const defaultFilters: FruitFilters = {
+  calories: { min: 0, max: 100 },
+  fat: { min: 0, max: 5 },
+  sugar: { min: 0, max: 20 },
+  carbohydrates: { min: 0, max: 30 },
+  protein: { min: 0, max: 5 }
 };
-
-const isMobile = computed(() => window.innerWidth < 768);
 
 const update = () => {
   emit('update:modelValue', props.modelValue);
 };
 
+const resetFilters = () => {
+  emit('update:modelValue', { ...defaultFilters });
+};
+
+const closeFilters = () => {
+  isOpen.value = false;
+};
+
+const toggleFilters = () => {
+  isOpen.value = !isOpen.value;
+};
+
 const formatLabel = (key: string) => {
   return key.charAt(0).toUpperCase() + key.slice(1);
 };
+
+onMounted(() => {
+  emitter.on('toggle-filters', toggleFilters);
+});
+
+onUnmounted(() => {
+  emitter.off('toggle-filters', toggleFilters);
+});
 </script>
 
 <style lang="scss" scoped>
@@ -70,7 +105,98 @@ const formatLabel = (key: string) => {
 }
 
 .filters {
-  transition: transform 0.3s ease;
+  background: var(--card-background);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+
+  @media (max-width: 768px) {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 85%;
+    height: 100%;
+    margin: 0;
+    border-radius: 0;
+    z-index: 1000;
+    padding: 1.5rem;
+    overflow-y: auto;
+
+    &.filters-open {
+      right: 0;
+    }
+  }
+
+  @media (min-width: 769px) {
+    transform: translateY(-150%);
+    opacity: 0;
+    visibility: hidden;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 100;
+
+    &.filters-open {
+      transform: translateY(0);
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+}
+
+.filters-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+
+  h3 {
+    margin: 0;
+    color: var(--text-color);
+  }
+}
+
+.filters-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.close-button, .reset-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: var(--text-color);
+  border-radius: 4px;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: var(--background-color);
+    color: var(--primary-color);
+  }
+}
+
+.reset-button {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.close-button svg {
+  display: block;
+}
+
+.filters-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 90;
 }
 
 .filters-grid {
@@ -115,39 +241,6 @@ const formatLabel = (key: string) => {
       border-color: var(--primary-color);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       background-color: white;
-    }
-  }
-}
-
-.filter-toggle-button {
-  background-color: var(--primary-color);
-  filter: brightness(1);
-  color: white;
-  padding: 0.25rem .5rem;
-  border: none;
-  border-radius: 10px;
-  font-size: .9rem;
-
-  &:hover {
-    filter: brightness(0.9); // затемнённый цвет
-  }
-}
-
-@media (max-width: 768px) {
-  .filters {
-    position: fixed;
-    top: 0;
-    right: -100%;
-    width: 85%;
-    height: 100%;
-    background-color: white;
-    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
-    padding: 1.5rem;
-    overflow-y: auto;
-    transition: transform 0.3s ease-in-out;
-
-    &.filters-open {
-      transform: translateX(-100%);
     }
   }
 }

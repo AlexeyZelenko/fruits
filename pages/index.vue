@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="page-container">
     <FilterPanel v-model="store.filters" />
     
     <div v-if="loading && !store.fruits.length" class="loading">
@@ -54,8 +54,15 @@ const loadMore = () => {
 </script>
 
 <style lang="scss" scoped>
+.page-container {
+  min-height: calc(100vh - 60px); // Adjust based on your header height
+  display: flex;
+  flex-direction: column;
+}
+
 .fruits-container {
-  height: calc(100vh - 200px);
+  flex: 1;
+  overflow-y: auto;
 }
 
 .loading, .error, .no-data {
@@ -70,5 +77,10 @@ const loadMore = () => {
 
 .no-data {
   color: gray;
+}
+
+.grid {
+  padding: 0;
+  margin-bottom: 0;
 }
 </style>
