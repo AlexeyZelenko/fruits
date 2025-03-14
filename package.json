@@ -5,9 +5,10 @@
   "scripts": {
     "build": "nuxt build",
     "dev": "set HOST=0.0.0.0 && nuxt dev",
-    "generate": "nuxt generate",
+    "generate": "npx nuxi generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "deploy": "firebase deploy --only hosting"
   },
   "dependencies": {
     "@pinia/nuxt": "^0.5.5",

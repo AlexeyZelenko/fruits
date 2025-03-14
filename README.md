@@ -39,4 +39,6 @@ Locally preview production build:
 npm run preview
 ```
 
+Hosting URL: https://fruits-test-f250a.web.app
+
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
